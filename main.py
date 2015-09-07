@@ -1,10 +1,9 @@
 #!/usr/bin/python3
 
 import numpy as np
+import numpy.random as random
 
 import matplotlib.pyplot as plt
-import random
-
 
 # Blood types are represented by strings of length 2
 fractions = [0.25, 0.25, 0.25, 0.25]
@@ -16,14 +15,15 @@ def create_initial_blood_types(size, fractions):
     blood_types = []
     for index in range(size):
         if index < size*fractions[0]:
-            blood_types.append('oo')
+            bt = 'oo'
         elif index < size*(fractions[1] + fractions[0]):
-            blood_types.append(random.choice(['aa', 'ao', 'oa']))
+            bt = random.choice(['aa', 'ao', 'oa'])
         elif index < size*(fractions[2] + fractions[1] + fractions[0]):
-            blood_types.append(random.choice(['bb', 'bo', 'ob']))
+            bt = random.choice(['bb', 'bo', 'ob'])
         else:
-            blood_types.append('ab')
-    return blood_types
+            bt = 'ab'
+        blood_types.append([bt[0], bt[1]])
+    return np.array(blood_types)
 
 
 def create_new_blood_type(blood_type_1, blood_type_2):
@@ -33,22 +33,25 @@ def create_new_blood_type(blood_type_1, blood_type_2):
 
 def next_generation(blood_types_1, blood_types_2):
     # Generate equal numbers of 'male' and 'female' blood_types
-    new_blood_types_1 = []
-    new_blood_types_2 = []
     size = len(blood_types_1)
-    for index in range(size):
-        new_blood_types_1.append(create_new_blood_type(blood_types_1[random.randint(0, size-1)],
-                                                       blood_types_2[random.randint(0, size-1)]))
-        new_blood_types_2.append(create_new_blood_type(blood_types_1[random.randint(0, size-1)],
-                                                       blood_types_2[random.randint(0, size-1)]))
-
+    rbt1 = random.randint(0, size, size=2*size)
+    rbt2 = random.randint(0, size, size=2*size)
+    r1 = random.randint(2, size=2*size)
+    r2 = random.randint(2, size=2*size)
+    nbt_1 = blood_types_1[rbt1, r1]
+    nbt_2 = blood_types_2[rbt2, r2]
+    nbt = np.transpose([nbt_1, nbt_2])
+    new_blood_types_1 = nbt[:size]
+    new_blood_types_2 = nbt[size:]
     return new_blood_types_1, new_blood_types_2, generate_results(new_blood_types_1, new_blood_types_2)
 
 
+@profile
 def generate_results(blood_types_1, blood_types_2):
     """Figure out how many of each blood type there is"""
     ab = a = b = o = 0
-    for blood_type in blood_types_1 + blood_types_2:
+    for blood_type in np.vstack([blood_types_1, blood_types_2]):
+        blood_type = blood_type[0] + blood_type[1]
         if blood_type in ['ab']:
             ab += 1
         elif blood_type in ['aa', 'ao', 'oa']:
@@ -57,7 +60,7 @@ def generate_results(blood_types_1, blood_types_2):
             b += 1
         else:
             o += 1
-    size = len(blood_types_1 + blood_types_2)
+    size = len(blood_types_1) + len(blood_types_2)
     return {'ab': ab/size, 'a': a/size, 'b': b/size, 'o': o/size}
 
 
