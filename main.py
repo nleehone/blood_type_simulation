@@ -21,7 +21,7 @@ def create_initial_blood_types(size, fractions):
         elif index < size*(fractions[2] + fractions[1] + fractions[0]):
             bt = random.choice(['bb', 'bo', 'ob'])
         else:
-            bt = 'ab'
+            bt = random.choice(['ab', 'ba'])
         blood_types.append([bt[0], bt[1]])
     return np.array(blood_types)
 
@@ -52,7 +52,7 @@ def generate_results(blood_types_1, blood_types_2):
     ab = a = b = o = 0
     for blood_type in np.vstack([blood_types_1, blood_types_2]):
         blood_type = blood_type[0] + blood_type[1]
-        if blood_type in ['ab']:
+        if blood_type in ['ab', 'ba']:
             ab += 1
         elif blood_type in ['aa', 'ao', 'oa']:
             a += 1
