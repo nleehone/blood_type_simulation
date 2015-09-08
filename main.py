@@ -10,20 +10,21 @@ import matplotlib.pyplot as plt
 'a' : 1
 'b' : 4
 The full blood types are therefore represented by:
-'oo': 0
-'ao': 1
-'oa': 1
-'aa': 2
-'bo': 4
-'ob': 4
-'bb': 8
-'ab': 5
+'oo': [0, 0]
+'ao': [1, 0]
+'oa': [0, 1]
+'aa': [1, 1]
+'bo': [4, 0]
+'ob': [0, 4]
+'bb': [4, 4]
+'ab': [1, 4]
+'ba': [4, 1]
 """
 # The fractions represent how many people start with a certain blood type
 # Ordered: ['o', 'a', 'b', 'ab']
 fractions = [0.25, 0.25, 0.25, 0.25]
-size = 10000
-num_generations = 200
+size = 100000
+num_generations = 2000
 
 blood_types_to_base = np.array([[0, 0], [0, 1], [1, 1], [-1, -1], [0, 4], [4, 1], [-1, -1], [-1, -1], [4, 4]])
 
@@ -32,27 +33,20 @@ def create_initial_blood_types(size, fractions):
     blood_types = []
     for index in range(size):
         if index < size*fractions[0]:
-            bt = 0
+            types = [[0, 0]]
         elif index < size*(fractions[1] + fractions[0]):
             # Need to repeat the '1' so that we can have 'ao' and 'oa'
-            bt = random.choice([1, 1, 2])
+            types = [[0, 1], [1, 0], [1, 1]]
         elif index < size*(fractions[2] + fractions[1] + fractions[0]):
             # Need to repeat the '4' so that we can have 'bo' and 'ob'
-            bt = random.choice([4, 4, 8])
+            types = [[0, 4], [4, 0], [4, 4]]
         else:
-            bt = 5
-        blood_types.append(bt)
+            types = [[1, 4], [4, 1]]
+
+        blood_types.append(types[random.randint(0, len(types))])
     return np.array(blood_types)
 
 
-def create_new_blood_type(blood_type_1, blood_type_2):
-    # Choose either the first or second part of the blood type
-    base_1 = blood_types_to_base[blood_type_1]
-    base_2 = blood_types_to_base[blood_type_2]
-    return base_1[random.randint(0, 2)] + base_2[random.randint(0, 2)]
-
-
-@profile
 def next_generation(blood_types_1, blood_types_2):
     # Generate equal numbers of 'male' and 'female' blood_types
     size = len(blood_types_1)
@@ -61,11 +55,7 @@ def next_generation(blood_types_1, blood_types_2):
     r1 = random.randint(2, size=2*size)
     r2 = random.randint(2, size=2*size)
 
-    bt_1 = blood_types_1[rbt1]
-    bt_2 = blood_types_2[rbt2]
-    bt_1 = blood_types_to_base[bt_1]
-    bt_2 = blood_types_to_base[bt_2]
-    nbt = np.array([bt_1[i][r1[i]] + bt_2[i][r2[i]] for i in range(size*2)])
+    nbt = np.append(blood_types_1[rbt1, r1], blood_types_2[rbt2, r2]).reshape(size*2, 2)
 
     new_blood_types_1 = nbt[:size]
     new_blood_types_2 = nbt[size:]
@@ -75,17 +65,13 @@ def next_generation(blood_types_1, blood_types_2):
 def generate_results(blood_types_1, blood_types_2):
     """Figure out how many of each blood type there is"""
     ab = a = b = o = 0
-    for blood_type in np.append(blood_types_1, blood_types_2):
-        if blood_type == 5:
-            ab += 1
-        elif blood_type in [1, 2]:
-            a += 1
-        elif blood_type in [4, 8]:
-            b += 1
-        else:
-            o += 1
+    blood_types_1 = np.sum(blood_types_1, axis=1)
+    blood_types_2 = np.sum(blood_types_2, axis=1)
+    blood_types = np.append(blood_types_1, blood_types_2)
+    counts = np.bincount(blood_types)
     size = 2*len(blood_types_1)
-    return {'ab': ab/size, 'a': a/size, 'b': b/size, 'o': o/size}
+    return {'ab': (counts[5])/size, 'a': (counts[1] + counts[2])/size,
+            'b': (counts[4] + counts[8])/size, 'o': (counts[0])/size}
 
 
 def plot_results(results):
