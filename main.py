@@ -23,16 +23,9 @@ The full blood types are therefore represented by:
 # Ordered: ['o', 'a', 'b', 'ab']
 fractions = [0.25, 0.25, 0.25, 0.25]
 size = 10000
-num_generations = 100
+num_generations = 200
 
-blood_types_to_base = {
-    0: [0, 0],
-    1: [0, 1],
-    2: [1, 1],
-    4: [0, 4],
-    8: [4, 4],
-    5: [4, 1]
-}
+blood_types_to_base = np.array([[0, 0], [0, 1], [1, 1], [-1, -1], [0, 4], [4, 1], [-1, -1], [-1, -1], [4, 4]])
 
 
 def create_initial_blood_types(size, fractions):
@@ -40,7 +33,6 @@ def create_initial_blood_types(size, fractions):
     for index in range(size):
         if index < size*fractions[0]:
             bt = 0
-            bt = 5
         elif index < size*(fractions[1] + fractions[0]):
             # Need to repeat the '1' so that we can have 'ao' and 'oa'
             bt = random.choice([1, 1, 2])
@@ -60,6 +52,7 @@ def create_new_blood_type(blood_type_1, blood_type_2):
     return base_1[random.randint(0, 2)] + base_2[random.randint(0, 2)]
 
 
+@profile
 def next_generation(blood_types_1, blood_types_2):
     # Generate equal numbers of 'male' and 'female' blood_types
     size = len(blood_types_1)
@@ -67,16 +60,18 @@ def next_generation(blood_types_1, blood_types_2):
     rbt2 = random.randint(0, size, size=2*size)
     r1 = random.randint(2, size=2*size)
     r2 = random.randint(2, size=2*size)
+
     bt_1 = blood_types_1[rbt1]
     bt_2 = blood_types_2[rbt2]
-    nbt = np.array([create_new_blood_type(bt_1[i], bt_2[i]) for i in range(size*2)])
-    #nbt = np.transpose([nbt_1, nbt_2])
+    bt_1 = blood_types_to_base[bt_1]
+    bt_2 = blood_types_to_base[bt_2]
+    nbt = np.array([bt_1[i][r1[i]] + bt_2[i][r2[i]] for i in range(size*2)])
+
     new_blood_types_1 = nbt[:size]
     new_blood_types_2 = nbt[size:]
     return new_blood_types_1, new_blood_types_2, generate_results(new_blood_types_1, new_blood_types_2)
 
 
-@profile
 def generate_results(blood_types_1, blood_types_2):
     """Figure out how many of each blood type there is"""
     ab = a = b = o = 0
