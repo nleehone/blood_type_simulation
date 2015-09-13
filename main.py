@@ -20,11 +20,16 @@ The full blood types are therefore represented by:
 'ab': [1, 4]
 'ba': [4, 1]
 """
-# The fractions represent how many people start with a certain blood type
-# Ordered: ['o', 'a', 'b', 'ab']
+# -------------------
+# Configuration
+# -------------------
+# Indicates the fractions of each blood type within the initial population
+# with order [o, a, b, ab]
 fractions = [0.25, 0.25, 0.25, 0.25]
-size = 100000
-num_generations = 2000
+# Number of people of each 'gender'
+size = 10000
+# Number of generations that the simulation will run for
+num_generations = 100
 
 blood_types_to_base = np.array([[0, 0], [0, 1], [1, 1], [-1, -1], [0, 4], [4, 1], [-1, -1], [-1, -1], [4, 4]])
 
