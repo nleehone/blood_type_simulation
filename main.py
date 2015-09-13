@@ -29,7 +29,7 @@ fractions = [0.25, 0.25, 0.25, 0.25]
 # Number of people of each 'gender'
 size = 10000
 # Number of generations that the simulation will run for
-num_generations = 100
+num_generations = 200
 
 blood_types_to_base = np.array([[0, 0], [0, 1], [1, 1], [-1, -1], [0, 4], [4, 1], [-1, -1], [-1, -1], [4, 4]])
 
@@ -91,6 +91,7 @@ def plot_results(results):
     plt.plot(x, b, label='b')
     plt.plot(x, o, label='o')
     plt.legend()
+    plt.savefig('results.png')
     plt.show()
     
 
