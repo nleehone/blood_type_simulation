@@ -5,9 +5,16 @@ import numpy.random as random
 
 import matplotlib.pyplot as plt
 
-# Blood types are represented by strings of length 2
+
+# -------------------
+# Configuration
+# -------------------
+# Indicates the fractions of each blood type within the initial population
+# with order [o, a, b, ab]
 fractions = [0.25, 0.25, 0.25, 0.25]
+# Number of people of each 'gender'
 size = 10000
+# Number of generations that the simulation will run for
 num_generations = 100
 
 
@@ -24,11 +31,6 @@ def create_initial_blood_types(size, fractions):
             bt = random.choice(['ab', 'ba'])
         blood_types.append([bt[0], bt[1]])
     return np.array(blood_types)
-
-
-def create_new_blood_type(blood_type_1, blood_type_2):
-    # Choose either the first or second part of the blood type
-    return blood_type_1[random.randint(0, 1)] + blood_type_2[random.randint(0, 1)]
 
 
 def next_generation(blood_types_1, blood_types_2):
@@ -61,6 +63,20 @@ def generate_results(blood_types_1, blood_types_2):
         else:
             o += 1
     size = len(blood_types_1) + len(blood_types_2)
+
+    def fun(blood_type):
+        blood_type = blood_type[0] + blood_type[1]
+        nonlocal ab, a, b, o
+        if blood_type in ['ab', 'ba']:
+            ab += 1
+        elif blood_type in ['aa', 'ao', 'oa']:
+            a += 1
+        elif blood_type in ['bb', 'bo', 'ob']:
+            b += 1
+        else:
+            o += 1
+        
+    np.apply_along_axis(fun, 1, np.vstack([blood_types_1, blood_types_2]))
     return {'ab': ab/size, 'a': a/size, 'b': b/size, 'o': o/size}
 
 
